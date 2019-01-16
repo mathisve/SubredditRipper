@@ -1,3 +1,6 @@
+#Mathis Van Eetvelde 1/16/2019
+#
+#
 import praw, requests, re
 import urllib
 import time
@@ -40,7 +43,7 @@ def checkForFaulty(path):
 	#checks if image size is equal to the default imgur "not available" picture
 	#if so, it will move image to faulty!
 	#also if the image is unopenable, it will too!
-	
+
 	try:
 		os.mkdir(sys.argv[2] + "/faulty")
 	except OSError:
@@ -62,7 +65,7 @@ for submission in top:
 	print(submission.url)
 	try:
 		title = submission.title
-		for char in [" ", ".", "!", "?", "/", "*"]
+		for char in [" ", ".", "!", "?", "/", "*"]:
 			title.replace(char, "_")
 
 		print(title)
