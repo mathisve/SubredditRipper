@@ -9,9 +9,10 @@ import os
 from PIL import Image
 import shutil
 
-amountOfPictures = 100
-masterPath = "D:/Reddit/"
-
+try:
+	amountOfPictures = int(sys.argv[3])
+except:
+	amountOfPictures = 100
 
 file = open('logindata.txt', 'r')
 logindata = []
@@ -59,6 +60,7 @@ def checkForFaulty(path):
 
 			
 
+makedir()
 
 for submission in top:
 	time.sleep(.1)
@@ -79,7 +81,7 @@ for submission in top:
 		else:
 			fileFormat = ".png"
 			
-		pathToFile = '{}{}/{}{}'.format(masterPath, sys.argv[2],title.decode(), fileFormat)
+		pathToFile = '{}{}/{}{}'.format(os.getcwd() + "\\" , sys.argv[2],title.decode(), fileFormat)
 		print(pathToFile)
 		urllib.request.urlretrieve(submission.url, pathToFile)
 		checkForFaulty(pathToFile)
