@@ -40,37 +40,49 @@ def makedir():
 	else: 
 		print("Making new directory: ", sys.argv[2])
 
-def checkForFaulty(path):
+def getFaultyImgSize(path):
+	img = Image.open(path)
+	return img.size
+
+def checkForFaulty(path, fileName):
 	#checks if image size is equal to the default imgur "not available" picture
 	#if so, it will move image to faulty!
 	#also if the image is unopenable, it will too!
 
+	faultyDir = "/faulty"
+
 	try:
-		os.mkdir(sys.argv[2] + "/faulty")
+		os.mkdir(sys.argv[2] + faultyDir)
 	except OSError:
 		pass
+
+	def moveOrRemove(path):
+		if(os.path.isfile(os.getcwd() + "/" + sys.argv[2] + faultyDir +"/" + fileName)):
+			os.remove(path)
+		else:
+			shutil.move(path, sys.argv[2] + faultyDir)
+
 	try:
 		img = Image.open(path)
-		width, height = img.size
-		if(width*height == 13041):			
-
-			shutil.move(path, sys.argv[2] + "/faulty")
+		if(img.size == getFaultyImgSize("imgurfaulty.jpg")):			
+			moveOrRemove(path)
 	except: 
-		shutil.move(path, sys.argv[2] + "/faulty")
+		moveOrRemove(path)
 
 			
-
 makedir()
+
 
 for submission in top:
 	time.sleep(.1)
 	print(submission.url)
 	try:
 		title = submission.title
-		for char in [" ", ".", "!", "?", "/", "*"]:
-			title.replace(char, "_")
-
+		for char in [" ", ".", "!", "?", "/", "*", "[", "]", '"']:
+			title = title.replace(char, "_")
 		print(title)
+
+		
 		title = title.encode("utf-8")
 		endOfUrl = submission.url[-4:]	
 
@@ -81,10 +93,11 @@ for submission in top:
 		else:
 			fileFormat = ".png"
 			
-		pathToFile = '{}{}/{}{}'.format(os.getcwd() + "\\" , sys.argv[2],title.decode(), fileFormat)
+		pathToFile = '{}\\{}\\{}{}'.format(os.getcwd(), sys.argv[2],title.decode(), fileFormat)
+		fileName = title.decode() + fileFormat
 		print(pathToFile)
 		urllib.request.urlretrieve(submission.url, pathToFile)
-		checkForFaulty(pathToFile)
+		checkForFaulty(pathToFile, fileName)
 		
 	except Exception as e:
 		print("Failed: {}  Reason: {}".format(submission.url, e))
