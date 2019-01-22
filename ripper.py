@@ -25,8 +25,6 @@ reddit = praw.Reddit(client_id=logindata[0],
 					 password=logindata[3],
 					 user_agent=logindata[4])
 
-
-
 subreddit = reddit.subreddit(sys.argv[1])
 
 top = subreddit.top(limit=amountOfPictures)
@@ -49,18 +47,18 @@ def checkForFaulty(path, fileName):
 	#if so, it will move image to faulty!
 	#also if the image is unopenable, it will too!
 
-	faultyDir = "/faulty"
+	faultyDir = "faulty"
 
 	try:
-		os.mkdir(sys.argv[2] + faultyDir)
+		os.mkdir(os.path.join(sys.argv[2], faultyDir))
 	except OSError:
 		pass
 
 	def moveOrRemove(path):
-		if(os.path.isfile(os.getcwd() + "/" + sys.argv[2] + faultyDir +"/" + fileName)):
+		if(os.path.isfile(os.path.join(os.getcwd(), sys.argv[2], faultyDir, fileName))):
 			os.remove(path)
 		else:
-			shutil.move(path, sys.argv[2] + faultyDir)
+			shutil.move(path, os.path.join(sys.argv[2], faultyDir))
 
 	try:
 		img = Image.open(path)
@@ -93,8 +91,8 @@ for submission in top:
 		else:
 			fileFormat = ".png"
 			
-		pathToFile = '{}\\{}\\{}{}'.format(os.getcwd(), sys.argv[2],title.decode(), fileFormat)
 		fileName = title.decode() + fileFormat
+		pathToFile = os.path.join(os.getcwd(), sys.argv[2], fileName)	
 		print(pathToFile)
 		urllib.request.urlretrieve(submission.url, pathToFile)
 		checkForFaulty(pathToFile, fileName)
