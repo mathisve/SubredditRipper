@@ -90,8 +90,13 @@ for submission in top:
 			fileFormat = submission.url[-5:]
 		else:
 			fileFormat = ".png"
-			
+
 		fileName = title.decode() + fileFormat
+
+		pathToFile = os.path.join(os.getcwd(), sys.argv[2], fileName)	
+		urllib.request.urlretrieve(submission.url, pathToFile)
+			
+		
 		if(os.path.isfile(pathToFile)):
 			print("{}/{} File allready exists: {}".format(count, amountOfPictures,fileName))
 		else:
@@ -99,9 +104,7 @@ for submission in top:
 			print("{}/{} File downloaded: {}".format(count, amountOfPictures, fileName))
 
 
-		pathToFile = os.path.join(os.getcwd(), sys.argv[2], fileName)	
-		print(pathToFile)
-		urllib.request.urlretrieve(submission.url, pathToFile)
+		
 
 		checkForFaulty(pathToFile, fileName)
 
