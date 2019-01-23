@@ -72,15 +72,15 @@ def checkForFaulty(path, fileName):
 			
 makedir()
 
-
+count = 0
 for submission in top:
+	count += 1
 	time.sleep(.1)
-	print(submission.url)
 	try:
 		title = submission.title
 		for char in [" ", ".", "!", "?", "/", "*", "[", "]", '"']:
 			title = title.replace(char, "_")
-		print(title)
+		
 
 		
 		title = title.encode("utf-8")
@@ -95,9 +95,15 @@ for submission in top:
 			
 		pathToFile = '{}\\{}\\{}{}'.format(os.getcwd(), sys.argv[2],title.decode(), fileFormat)
 		fileName = title.decode() + fileFormat
-		print(pathToFile)
-		urllib.request.urlretrieve(submission.url, pathToFile)
+
+		if(os.path.isfile(pathToFile)):
+			print("{}/{} File allready exists: {}".format(count, amountOfPictures,fileName))
+		else:
+			urllib.request.urlretrieve(submission.url, pathToFile)
+			print("{}/{} File downloaded: {}".format(count, amountOfPictures, fileName))
+
 		checkForFaulty(pathToFile, fileName)
-		
+
+			
 	except Exception as e:
 		print("Failed: {}  Reason: {}".format(submission.url, e))
