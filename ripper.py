@@ -14,6 +14,8 @@ try:
 except:
 	amountOfPictures = 100
 
+
+
 file = open('logindata.txt', 'r')
 logindata = []
 for lines in file:
@@ -29,30 +31,39 @@ subreddit = reddit.subreddit(sys.argv[1])
 
 top = subreddit.top(limit=amountOfPictures)
 
-
+faultyDir = "faulty"
 def makedir():
-	try:
-		os.mkdir(sys.argv[2])
-	except OSError:
-		print("Directory allready exists!")
-	else: 
-		print("Making new directory: ", sys.argv[2])
 
-def getFaultyImgSize(path):
-	img = Image.open(path)
+	try:
+		if(os.path.isdir(sys.argv[2]) == True):
+			print("{} directory allready exists, skipping this step!".format(sys.argv[2]))
+			pass
+		else:
+			print("Making new directory: ", sys.argv[2])
+			os.mkdir(sys.argv[2])
+	except Exception as e:
+		print(e)
+		exit()
+		
+	
+	try:
+		if(os.path.isdir(os.path.join(sys.argv[2], faultyDir)) == True):
+			print("Faulty directory allready exists, skipping this step!")
+		else:
+			os.mkdir(os.path.join(sys.argv[2], faultyDir))
+	except Exception as e:
+		print(e)
+		exit()
+
+def getFaultyImgSize():
+	img = Image.open("imgurfaulty.jpg")
 	return img.size
+
 
 def checkForFaulty(path, fileName):
 	#checks if image size is equal to the default imgur "not available" picture
 	#if so, it will move image to faulty!
 	#also if the image is unopenable, it will too!
-
-	faultyDir = "faulty"
-
-	try:
-		os.mkdir(os.path.join(sys.argv[2], faultyDir))
-	except OSError:
-		pass
 
 	def moveOrRemove(path):
 		if(os.path.isfile(os.path.join(os.getcwd(), sys.argv[2], faultyDir, fileName))):
@@ -62,21 +73,31 @@ def checkForFaulty(path, fileName):
 
 	try:
 		img = Image.open(path)
-		if(img.size == getFaultyImgSize("imgurfaulty.jpg")):			
+		imgSize = img.size
+		img.close()
+
+		if(imgSize == getFaultyImgSize()):						
 			moveOrRemove(path)
-	except: 
+	except Exception as e: 
 		moveOrRemove(path)
 
+totalTime = []
+def getTime(startTime):
+	stopTime = time.time()
+	takenTime = stopTime - startTime
+	totalTime.append(takenTime)
+	return takenTime
 			
 makedir()
 
 count = 0
 for submission in top:
+	
 	count += 1
-	time.sleep(.1)
+	startTime = time.time()
 	try:
 		title = submission.title
-		for char in [" ", ".", "!", "?", "/", "*", "[", "]", '"']:
+		for char in [" ", ".", "!", "?", "/", "*", "[", "]", '"',":",")","(",","]:
 			title = title.replace(char, "_")
 		
 
@@ -94,20 +115,26 @@ for submission in top:
 		fileName = title.decode() + fileFormat
 
 		pathToFile = os.path.join(os.getcwd(), sys.argv[2], fileName)	
-		urllib.request.urlretrieve(submission.url, pathToFile)
+
+		exists = False
+		if(os.path.isfile(pathToFile) == True or os.path.isfile(os.path.join(os.getcwd(), sys.argv[2], faultyDir, fileName)) == True):
+			exists = True
+
 			
-		
-		if(os.path.isfile(pathToFile)):
-			print("{}/{} File allready exists: {}".format(count, amountOfPictures,fileName))
+
+
+		if(exists == True):
+			print("{}/{} t:{}s  File allready exists: {}".format(count, amountOfPictures,round(getTime(startTime), 3),fileName))
 		else:
+			time.sleep(.05)
 			urllib.request.urlretrieve(submission.url, pathToFile)
-			print("{}/{} File downloaded: {}".format(count, amountOfPictures, fileName))
-
-
-		
-
-		checkForFaulty(pathToFile, fileName)
-
+			checkForFaulty(pathToFile, fileName)
+			print("{}/{} t:{}s  File downloaded: {}".format(count, amountOfPictures,round(getTime(startTime), 3), fileName))		
 			
 	except Exception as e:
-		print("Failed: {}  Reason: {}".format(submission.url, e))
+		print("{}/{} Failed: {}  Reason: {}".format(count, amountOfPictures, submission.url, e))
+
+sumOfTime = 0.0
+for t in totalTime:
+	sumOfTime += t
+print("Complete! Took: {} seconds".format(round(sumOfTime, 5)))
