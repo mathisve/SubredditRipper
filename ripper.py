@@ -31,8 +31,8 @@ subreddit = reddit.subreddit(sys.argv[1])
 
 top = subreddit.top(limit=amountOfPictures)
 
-faultyDir = "faulty"
-def makedir():
+
+def makedir(faultyDir):
 
 	try:
 		if(os.path.isdir(sys.argv[2]) == True):
@@ -81,60 +81,70 @@ def checkForFaulty(path, fileName):
 	except Exception as e: 
 		moveOrRemove(path)
 
+
 totalTime = []
 def getTime(startTime):
-	stopTime = time.time()
-	takenTime = stopTime - startTime
-	totalTime.append(takenTime)
-	return takenTime
+	totalTime.append(time.time() - startTime)
+	return time.time() - startTime
 			
-makedir()
 
-count = 0
-for submission in top:
-	
-	count += 1
-	startTime = time.time()
-	try:
-		title = submission.title
-		for char in [" ", ".", "!", "?", "/", "*", "[", "]", '"',":",")","(",","]:
-			title = title.replace(char, "_")
+faultyDir = "faulty"
+def getPictures():
+	count = 0
+	for submission in top:
 		
-
-		
-		title = title.encode("utf-8")
-		endOfUrl = submission.url[-4:]	
-
-		if(endOfUrl == ".png" or endOfUrl == ".jpg" or endOfUrl == ".gif" ):
-			fileFormat = submission.url[-4:]
-		elif(submission.url[-5:] == ".JPEG" or submission.url[-5:] == ".gifv"):
-			fileFormat = submission.url[-5:]
-		else:
-			fileFormat = ".png"
-
-		fileName = title.decode() + fileFormat
-
-		pathToFile = os.path.join(os.getcwd(), sys.argv[2], fileName)	
-
-		exists = False
-		if(os.path.isfile(pathToFile) == True or os.path.isfile(os.path.join(os.getcwd(), sys.argv[2], faultyDir, fileName)) == True):
-			exists = True
-
+		count += 1
+		startTime = time.time()
+		try:
+			title = submission.title
+			for char in [" ", ".", "!", "?", "/", "*", "[", "]", '"',":",")","(",","]:
+				title = title.replace(char, "_")
 			
 
-
-		if(exists == True):
-			print("{}/{} t:{}s  File allready exists: {}".format(count, amountOfPictures,round(getTime(startTime), 3),fileName))
-		else:
-			time.sleep(.05)
-			urllib.request.urlretrieve(submission.url, pathToFile)
-			checkForFaulty(pathToFile, fileName)
-			print("{}/{} t:{}s  File downloaded: {}".format(count, amountOfPictures,round(getTime(startTime), 3), fileName))		
 			
-	except Exception as e:
-		print("{}/{} Failed: {}  Reason: {}".format(count, amountOfPictures, submission.url, e))
+			title = title.encode("utf-8")
+			endOfUrl = submission.url[-4:]	
 
-sumOfTime = 0.0
-for t in totalTime:
-	sumOfTime += t
-print("Complete! Took: {} seconds".format(round(sumOfTime, 5)))
+			if(endOfUrl == ".png" or endOfUrl == ".jpg" or endOfUrl == ".gif" ):
+				fileFormat = submission.url[-4:]
+			elif(submission.url[-5:] == ".JPEG" or submission.url[-5:] == ".gifv"):
+				fileFormat = submission.url[-5:]
+			else:
+				fileFormat = ".png"
+
+			fileName = title.decode() + fileFormat
+
+			pathToFile = os.path.join(os.getcwd(), sys.argv[2], fileName)	
+
+			exists = False
+			if(os.path.isfile(pathToFile) == True or os.path.isfile(os.path.join(os.getcwd(), sys.argv[2], faultyDir, fileName)) == True):
+				exists = True
+
+				
+
+
+			if(exists == True):
+				print("{}/{} t:{}s  File allready exists: {}".format(count, amountOfPictures,round(getTime(startTime), 3),fileName))
+			else:
+				time.sleep(.05)
+				urllib.request.urlretrieve(submission.url, pathToFile)
+				checkForFaulty(pathToFile, fileName)
+				print("{}/{} t:{}s  File downloaded: {}".format(count, amountOfPictures,round(getTime(startTime), 3), fileName))		
+				
+		except Exception as e:
+			print("{}/{} Failed: {}  Reason: {}".format(count, amountOfPictures, submission.url, e))
+
+
+def main():
+	makedir(faultyDir)
+
+	getPictures()
+
+
+	sumOfTime = 0.0
+	for t in totalTime:
+		sumOfTime += t
+	print("Complete! Took: {} seconds".format(round(sumOfTime, 5)))
+
+if __name__ == '__main__':
+	main()
