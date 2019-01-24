@@ -27,9 +27,6 @@ reddit = praw.Reddit(client_id=logindata[0],
 					 password=logindata[3],
 					 user_agent=logindata[4])
 
-subreddit = reddit.subreddit(sys.argv[1])
-
-top = subreddit.top(limit=amountOfPictures)
 
 
 def makedir(faultyDir):
@@ -89,7 +86,7 @@ def getTime(startTime):
 			
 
 faultyDir = "faulty"
-def getPictures():
+def getPictures(top):
 	count = 0
 	for submission in top:
 		
@@ -136,9 +133,13 @@ def getPictures():
 
 
 def main():
+
+	subreddit = reddit.subreddit(sys.argv[1])
+	top = subreddit.top(limit=amountOfPictures)
+
 	makedir(faultyDir)
 
-	getPictures()
+	getPictures(top)
 
 
 	sumOfTime = 0.0
