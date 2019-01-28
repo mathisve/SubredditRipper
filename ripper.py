@@ -1,6 +1,8 @@
-#Mathis Van Eetvelde 1/16/2019
+#Author: Mathis Van Eetvelde 
+#Github: Mathisco-01
+#Started on: 1/16/2019
 #
-#
+
 import praw, requests, re
 import urllib
 import time
@@ -9,45 +11,93 @@ import os
 from PIL import Image
 import shutil
 
-try:
-	amountOfPictures = int(sys.argv[3])
-except:
-	amountOfPictures = 100
+def getAuth():
+	file = open('logindata.txt', 'r')
+	logindata = []
+	for lines in file:
+		logindata.append(lines[:-1])
 
+	return  praw.Reddit(client_id=logindata[0],
+					     client_secret=logindata[1],
+						 username=logindata[2],
+						 password=logindata[3],
+						 user_agent=logindata[4])
 
+def getArgv(isFile):
 
-file = open('logindata.txt', 'r')
-logindata = []
-for lines in file:
-	logindata.append(lines[:-1])
+	if(isFile == False):
+		def getSubreddit():
+			subreddit = sys.argv[1]
+			try:
+				subreddit = int(subreddit)
+				print("Entered subreddit (first argument) is not valid!")
+				exit()
+			except (TypeError, ValueError):
+				return subreddit
 
-reddit = praw.Reddit(client_id=logindata[0],
-				     client_secret=logindata[1],
-					 username=logindata[2],
-					 password=logindata[3],
-					 user_agent=logindata[4])
+		def getFolderName():
+			folder = sys.argv[2]
+			try:
+				folder = int(folder)
+				print("Entered folderName (second argument) is not valid!")
+				exit()	
+			except (TypeError, ValueError):
+				return folder
 
+		def getAmountOfPictures():
+			try:
+				amountOfPictures = int(sys.argv[3])
+				return amountOfPictures 
+			except:
+				print("No Amount Of Pictures (third argument) found, using 100 as default!")
+				return 100
+
+		return getSubreddit(), getFolderName(), getAmountOfPictures()
+
+	elif(isFile == True):
+
+		def getSubreddits():
+			filename = sys.argv[1]
+			subreddits = []
+			with open(filename, 'r') as subredditFile:
+				for line in subredditFile:
+					if(line[-1:]=="\n"):
+						subreddits.append(line[:-1])
+					else:
+						subreddits.append(line)
+
+			return subreddits
+
+		def getAmountOfPictures():
+			try:
+				amountOfPictures = int(sys.argv[2])
+				return amountOfPictures 
+			except:
+				print("No Amount Of Pictures (second argument) found, using 100 as default!")
+				return 100
+
+		return getSubreddits(), getAmountOfPictures()
 
 
 def makedir(faultyDir):
 
 	try:
-		if(os.path.isdir(sys.argv[2]) == True):
-			print("{} directory allready exists, skipping this step!".format(sys.argv[2]))
+		if(os.path.isdir(folderName) == True):
+			print("{} directory allready exists, skipping this step!".format(folderName))
 			pass
 		else:
-			print("Making new directory: ", sys.argv[2])
-			os.mkdir(sys.argv[2])
+			print("Making new directory: ", folderName)
+			os.mkdir(folderName)
 	except Exception as e:
 		print(e)
 		exit()
 		
 	
 	try:
-		if(os.path.isdir(os.path.join(sys.argv[2], faultyDir)) == True):
+		if(os.path.isdir(os.path.join(folderName, faultyDir)) == True):
 			print("Faulty directory allready exists, skipping this step!")
 		else:
-			os.mkdir(os.path.join(sys.argv[2], faultyDir))
+			os.mkdir(os.path.join(folderName, faultyDir))
 	except Exception as e:
 		print(e)
 		exit()
@@ -63,10 +113,10 @@ def checkForFaulty(path, fileName):
 	#also if the image is unopenable, it will too!
 
 	def moveOrRemove(path):
-		if(os.path.isfile(os.path.join(os.getcwd(), sys.argv[2], faultyDir, fileName))):
+		if(os.path.isfile(os.path.join(os.getcwd(), folderName, faultyDir, fileName))):
 			os.remove(path)
 		else:
-			shutil.move(path, os.path.join(sys.argv[2], faultyDir))
+			shutil.move(path, os.path.join(folderName, faultyDir))
 
 	try:
 		img = Image.open(path)
@@ -79,8 +129,10 @@ def checkForFaulty(path, fileName):
 		moveOrRemove(path)
 
 
-totalTime = []
+
 def getTime(startTime):
+	global totalTime 
+	totalTime = []
 	totalTime.append(time.time() - startTime)
 	return time.time() - startTime
 			
@@ -111,14 +163,11 @@ def getPictures(top):
 
 			fileName = title.decode() + fileFormat
 
-			pathToFile = os.path.join(os.getcwd(), sys.argv[2], fileName)	
+			pathToFile = os.path.join(os.getcwd(), folderName, fileName)	
 
 			exists = False
-			if(os.path.isfile(pathToFile) == True or os.path.isfile(os.path.join(os.getcwd(), sys.argv[2], faultyDir, fileName)) == True):
+			if(os.path.isfile(pathToFile) == True or os.path.isfile(os.path.join(os.getcwd(), folderName, faultyDir, fileName)) == True):
 				exists = True
-
-				
-
 
 			if(exists == True):
 				print("{}/{} t:{}s  File allready exists: {}".format(count, amountOfPictures,round(getTime(startTime), 3),fileName))
@@ -134,18 +183,38 @@ def getPictures(top):
 
 def main():
 
-	subreddit = reddit.subreddit(sys.argv[1])
-	top = subreddit.top(limit=amountOfPictures)
+	reddit = getAuth()
+	global subreddit, folderName, amountOfPictures
 
-	makedir(faultyDir)
+	if(sys.argv[1][-4:] == ".txt" and sys.argv[1] != "logindata.txt" and sys.argv[1] != "samplelogindata.txt"):
+		subreddits, amountOfPictures = getArgv(True)
+		for item in subreddits:
+			folderName = str(item)
 
-	getPictures(top)
+			subredditObj = reddit.subreddit(item)
+			top = subredditObj.top(limit=amountOfPictures)
+
+			makedir(faultyDir)
+			getPictures(top)
+
+			sumOfTime = 0.0
+			for t in totalTime:
+				sumOfTime += t
+				print("Complete! Took: {} seconds".format(round(sumOfTime, 5)))
 
 
-	sumOfTime = 0.0
-	for t in totalTime:
-		sumOfTime += t
-	print("Complete! Took: {} seconds".format(round(sumOfTime, 5)))
+	else:
+		subreddit, folderName, amountOfPictures = getArgv(False)
+		subredditObj = reddit.subreddit(subreddit)
+		top = subredditObj.top(limit=amountOfPictures)
+
+		makedir(faultyDir)
+		getPictures(top)
+
+		sumOfTime = 0.0
+		for t in totalTime:
+			sumOfTime += t
+		print("Complete! Took: {} seconds".format(round(sumOfTime, 5)))
 
 if __name__ == '__main__':
 	main()
