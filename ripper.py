@@ -3,7 +3,7 @@
 #Started on: 1/16/2019
 #
 
-import praw, requests, re
+import praw
 import urllib
 import time
 import sys
@@ -25,6 +25,7 @@ def getAuth():
 
 def getArgv(isFile):
 
+    
 	if(isFile == False):
 		def getSubreddit():
 			subreddit = sys.argv[1]
@@ -183,15 +184,9 @@ def getPictures(top):
 
 def main():
 
-	reddit = getAuth()
-	global subreddit, folderName, amountOfPictures
+	def runIndividual(subreddit):
 
-	if(sys.argv[1][-4:] == ".txt" and sys.argv[1] != "logindata.txt" and sys.argv[1] != "samplelogindata.txt"):
-		subreddits, amountOfPictures = getArgv(True)
-		for item in subreddits:
-			folderName = str(item)
-
-			subredditObj = reddit.subreddit(item)
+			subredditObj = reddit.subreddit(subreddit)
 			top = subredditObj.top(limit=amountOfPictures)
 
 			makedir(faultyDir)
@@ -203,18 +198,22 @@ def main():
 				print("Complete! Took: {} seconds".format(round(sumOfTime, 5)))
 
 
+	reddit = getAuth()
+	global subreddit, folderName, amountOfPictures
+
+	if(sys.argv[1][-4:] == ".txt" and sys.argv[1] != "logindata.txt" and sys.argv[1] != "samplelogindata.txt"):
+		subreddits, amountOfPictures = getArgv(True)
+		for item in subreddits:
+			folderName = str(item)
+
+			runIndividual(item)
+
+
+
 	else:
 		subreddit, folderName, amountOfPictures = getArgv(False)
-		subredditObj = reddit.subreddit(subreddit)
-		top = subredditObj.top(limit=amountOfPictures)
 
-		makedir(faultyDir)
-		getPictures(top)
-
-		sumOfTime = 0.0
-		for t in totalTime:
-			sumOfTime += t
-		print("Complete! Took: {} seconds".format(round(sumOfTime, 5)))
+		runIndividual(subreddit)
 
 if __name__ == '__main__':
 	main()
