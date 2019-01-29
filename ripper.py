@@ -14,8 +14,14 @@ import shutil
 def getAuth():
 	file = open('logindata.txt', 'r')
 	logindata = []
-	for lines in file:
-		logindata.append(lines[:-1])
+	for line in file:
+		logindata += line.split(",")
+
+	for x in range(len(logindata)):
+		logindata[x] = logindata[x].replace(",", "")
+		
+		if(logindata[x] == ""):
+			del logindata[x]
 
 	return  praw.Reddit(client_id=logindata[0],
 					     client_secret=logindata[1],
@@ -129,8 +135,6 @@ def checkForFaulty(path, fileName):
 	except Exception as e: 
 		moveOrRemove(path)
 
-
-
 def getTime(startTime):
 	global totalTime 
 	totalTime = []
@@ -149,8 +153,6 @@ def getPictures(top):
 			title = submission.title
 			for char in [" ", ".", "!", "?", "/", "*", "[", "]", '"',":",")","(",","]:
 				title = title.replace(char, "_")
-			
-
 			
 			title = title.encode("utf-8")
 			endOfUrl = submission.url[-4:]	
@@ -205,14 +207,10 @@ def main():
 		subreddits, amountOfPictures = getArgv(True)
 		for item in subreddits:
 			folderName = str(item)
-
 			runIndividual(item)
-
-
 
 	else:
 		subreddit, folderName, amountOfPictures = getArgv(False)
-
 		runIndividual(subreddit)
 
 if __name__ == '__main__':
