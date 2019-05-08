@@ -136,10 +136,8 @@ def checkForFaulty(path, fileName):
 		moveOrRemove(path)
 
 def getTime(startTime):
-	global totalTime 
-	totalTime = []
-	totalTime.append(time.time() - startTime)
-	return time.time() - startTime
+	totalTime.append(round(time.time() - startTime, 3))
+	return round(time.time() - startTime, 3)
 			
 
 faultyDir = "faulty"
@@ -149,8 +147,10 @@ def getPictures(top):
 		
 		count += 1
 		startTime = time.time()
+		
 		try:
 			title = submission.title
+			#tile.strip()
 			for char in [" ", ".", "!", "?", "/", "*", "[", "]", '"',":",")","(",","]:
 				title = title.replace(char, "_")
 			
@@ -173,18 +173,20 @@ def getPictures(top):
 				exists = True
 
 			if(exists == True):
-				print("{}/{} t:{}s  File allready exists: {}".format(count, amountOfPictures,round(getTime(startTime), 3),fileName))
+				print("{}/{} t:{}s  File allready exists: {}".format(count, amountOfPictures,getTime(startTime),fileName))
 			else:
 				time.sleep(.05)
 				urllib.request.urlretrieve(submission.url, pathToFile)
 				checkForFaulty(pathToFile, fileName)
-				print("{}/{} t:{}s  File downloaded: {}".format(count, amountOfPictures,round(getTime(startTime), 3), fileName))		
+				print("{}/{} t:{}s  File downloaded: {}".format(count, amountOfPictures,getTime(startTime), fileName))		
 				
 		except Exception as e:
 			print("{}/{} Failed: {}  Reason: {}".format(count, amountOfPictures, submission.url, e))
 
 
 def main():
+
+	global subreddit, folderName, amountOfPictures, totalTime 
 
 	def runIndividual(subreddit):
 
@@ -194,14 +196,13 @@ def main():
 			makedir(faultyDir)
 			getPictures(top)
 
-			sumOfTime = 0.0
-			for t in totalTime:
-				sumOfTime += t
-				print("Complete! Took: {} seconds".format(round(sumOfTime, 5)))
+			print("Complete! Took: {} seconds".format(sum(totalTime)))
 
 
 	reddit = getAuth()
-	global subreddit, folderName, amountOfPictures
+	totalTime = []
+
+	
 
 	if(sys.argv[1][-4:] == ".txt" and sys.argv[1] != "logindata.txt" and sys.argv[1] != "samplelogindata.txt"):
 		subreddits, amountOfPictures = getArgv(True)
