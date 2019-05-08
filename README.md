@@ -3,7 +3,8 @@ This tool is built to quickly and efficiently download top image posts of a cert
 It's very simple to use and quite efficient. For example: It automatically sorts broken/duplicate files to a faulty dir located inside the set download folder. It also doesnt download pictures it allready downloaded, if you run it twice on the same subreddit. It also doesn't discriminate on what subreddits you use it on ;) nor doest it care about howmuch you download.
 
 ## Setup
-The only things you will need to do is make a [reddit app](https://www.reddit.com/prefs/apps/) and fill the data into `samplelogindata.txt`, then change the filename to `logindata.txt` or change the `ripper.py` file. Other dependecies are: `praw` (Python Reddit API Wrapper), `urllib` and `Pillow`. Other lib's should come stock with `Python 3.6.6`
+Go into the SubredditRipper directory and do `pip3 install -r requirements.txt`.
+Other than that the only things you will need to do is make a [reddit app](https://www.reddit.com/prefs/apps/) and fill the data into `samplelogindata.txt`, then change the filename to `logindata.txt` or change the `ripper.py` file. Other dependecies are: `praw` (Python Reddit API Wrapper), `urllib` and `Pillow`. Other lib's should come stock with `Python 3.6.6`
 
 ## How to run
 If you just want to rip one subreddit, its very simple here are some examples:
