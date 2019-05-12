@@ -11,6 +11,7 @@ import os
 from PIL import Image
 import shutil
 import queue
+import threading
 
 def getAuth():
 	file = open('logindata.txt', 'r')
@@ -137,16 +138,15 @@ def checkForFaulty(path, fileName, folderName):
 		moveOrRemove(path)
 
 def getTime(startTime):
-	totalTime.append(round(time.time() - startTime, 6))
-	return round(time.time() - startTime, 6)
+	totalTime.append(round(time.time() - startTime, 4))
+	return round(time.time() - startTime, 4)
 			
 
 faultyDir = "faulty"
 def getPictures(top, folderName):
-	count = 0
+	count = 1
 	for submission in top:
-		
-		count += 1
+
 		startTime = time.time()
 		
 		try:
@@ -184,10 +184,11 @@ def getPictures(top, folderName):
 		except Exception as e:
 			print("{}/{} Failed: {}  Reason: {}".format(count, amountOfPictures, submission.url, e))
 
+		count += 1
 
 def main():
 
-	global subreddit, amountOfPictures, totalTime, q
+	global subreddit, amountOfPictures, totalTime, q, threads
 
 
 	def runIndividual(queueitem):
@@ -199,11 +200,12 @@ def main():
 			makedir(faultyDir, queueitem[1])
 			getPictures(top, queueitem[1])
 
-			print("Complete! Took: {} seconds".format(round(sum(totalTime), 1)))
+			sys.exit()
 
 
 	reddit = getAuth()
 	totalTime = []
+	threads = []
 	q = queue.Queue()
 	
 
@@ -212,13 +214,32 @@ def main():
 		for item in subreddits:
 			q.put([item, str(item)])
 
-		for queueitem in iter(q.get, None):
-			runIndividual(queueitem)
+		while not q.empty():
+			t = threading.Thread(target=runIndividual, args=(q.get(),))
+			threads.append(t)
+			t.start()
+			print("Started new thread! [{}/3]".format(len(threads)))
+			
+		started_threads = len(threads)
+		killed_threads_count = 0
+		killed_threads = []
+
+		while(killed_threads_count < started_threads):
+			for i in range(len(threads)):
+				if(not threads[i].isAlive() and threads[i] not in killed_threads):
+					killed_threads.append(threads[i])
+					killed_threads_count += 1
+			time.sleep(2)
+
+		print("Complete! Took: {} seconds".format(round(sum(totalTime), 1)))
+		exit()
 
 
 	else:
 		subreddit, folderName, amountOfPictures = getArgv(False)
 		runIndividual([subreddit, folderName])
+		print("Complete! Took: {} seconds".format(round(sum(totalTime), 1)))
+		exit()
 
 if __name__ == '__main__':
 	main()
