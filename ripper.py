@@ -4,7 +4,7 @@
 #
 
 import praw
-import urllib
+import urllib.request as urllib
 import time
 import sys
 import os
@@ -186,7 +186,9 @@ def getPictures(top, folderName):
 				s = "{}/{} t:{}s  File allready exists: {}".format(count, amountOfPictures,getTime(startTime),fileName)
 			else:
 				time.sleep(.05)
-				urllib.request.urlretrieve(submission.url, pathToFile)
+				request = urllib.urlopen(submission.url, timeout=1.5)
+				with open(pathToFile, "wb") as f:
+					f.write(request.read())
 				checkForFaulty(pathToFile, fileName, folderName)
 
 				s = "{}/{} t:{}s  File downloaded: {}".format(count, amountOfPictures,getTime(startTime), fileName)
@@ -195,7 +197,7 @@ def getPictures(top, folderName):
 			print(s)	
 			
 		except Exception as e:
-			s = "{}/{} URL: {}  Reason: {}".format(count, amountOfPictures, submission.url, e)
+			s = "{}/{} t:{}s   URL: {}  Reason: {}".format(count, amountOfPictures, getTime(startTime),submission.url, e)
 			logging.warning(s)
 			print(s)
 
@@ -217,6 +219,15 @@ def main():
 			getPictures(top, queueitem[1])
 
 			sys.exit()
+
+	def runOnce(queueitem):
+
+		subreddit = queueitem[0]
+		subredditObj = reddit.subreddit(subreddit)
+		top = subredditObj.top(limit=amountOfPictures)
+
+		makedir(faultyDir, queueitem[1])
+		getPictures(top, queueitem[1])
 
 
 	reddit = getAuth()
@@ -246,7 +257,7 @@ def main():
 				if(not threads[i].isAlive() and threads[i] not in killed_threads):
 					killed_threads.append(threads[i])
 					killed_threads_count += 1
-			time.sleep(2)
+			time.sleep(1)
 
 		print("Complete! Took: {} seconds".format(round(sum(totalTime), 1)))
 		exit()
@@ -254,9 +265,8 @@ def main():
 
 	else:
 		subreddit, folderName, amountOfPictures = getArgv(False)
-		runIndividual([subreddit, folderName])
+		runOnce([subreddit, folderName])
 		print("Complete! Took: {} seconds".format(round(sum(totalTime), 1)))
-		print("LOL")
 		exit()
 
 if __name__ == '__main__':

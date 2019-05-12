@@ -3,3 +3,4 @@ logindata.txt
 .DS_Store
 testsubreddits.txt
 downloadsubs.txt
+logs/*
