@@ -10,6 +10,7 @@ import sys
 import os
 from PIL import Image
 import shutil
+import queue
 
 def getAuth():
 	file = open('logindata.txt', 'r')
@@ -86,7 +87,7 @@ def getArgv(isFile):
 		return getSubreddits(), getAmountOfPictures()
 
 
-def makedir(faultyDir):
+def makedir(faultyDir, folderName):
 
 	try:
 		if(os.path.isdir(folderName) == True):
@@ -114,7 +115,7 @@ def getFaultyImgSize():
 	return img.size
 
 
-def checkForFaulty(path, fileName):
+def checkForFaulty(path, fileName, folderName):
 	#checks if image size is equal to the default imgur "not available" picture
 	#if so, it will move image to faulty!
 	#also if the image is unopenable, it will too!
@@ -136,12 +137,12 @@ def checkForFaulty(path, fileName):
 		moveOrRemove(path)
 
 def getTime(startTime):
-	totalTime.append(round(time.time() - startTime, 3))
-	return round(time.time() - startTime, 3)
+	totalTime.append(round(time.time() - startTime, 6))
+	return round(time.time() - startTime, 6)
 			
 
 faultyDir = "faulty"
-def getPictures(top):
+def getPictures(top, folderName):
 	count = 0
 	for submission in top:
 		
@@ -177,7 +178,7 @@ def getPictures(top):
 			else:
 				time.sleep(.05)
 				urllib.request.urlretrieve(submission.url, pathToFile)
-				checkForFaulty(pathToFile, fileName)
+				checkForFaulty(pathToFile, fileName, folderName)
 				print("{}/{} t:{}s  File downloaded: {}".format(count, amountOfPictures,getTime(startTime), fileName))		
 				
 		except Exception as e:
@@ -186,33 +187,38 @@ def getPictures(top):
 
 def main():
 
-	global subreddit, folderName, amountOfPictures, totalTime 
+	global subreddit, amountOfPictures, totalTime, q
 
-	def runIndividual(subreddit):
 
+	def runIndividual(queueitem):
+
+			subreddit = queueitem[0]
 			subredditObj = reddit.subreddit(subreddit)
 			top = subredditObj.top(limit=amountOfPictures)
 
-			makedir(faultyDir)
-			getPictures(top)
+			makedir(faultyDir, queueitem[1])
+			getPictures(top, queueitem[1])
 
-			print("Complete! Took: {} seconds".format(sum(totalTime)))
+			print("Complete! Took: {} seconds".format(round(sum(totalTime), 1)))
 
 
 	reddit = getAuth()
 	totalTime = []
-
+	q = queue.Queue()
 	
 
 	if(sys.argv[1][-4:] == ".txt" and sys.argv[1] != "logindata.txt" and sys.argv[1] != "samplelogindata.txt"):
 		subreddits, amountOfPictures = getArgv(True)
 		for item in subreddits:
-			folderName = str(item)
-			runIndividual(item)
+			q.put([item, str(item)])
+
+		for queueitem in iter(q.get, None):
+			runIndividual(queueitem)
+
 
 	else:
 		subreddit, folderName, amountOfPictures = getArgv(False)
-		runIndividual(subreddit)
+		runIndividual([subreddit, folderName])
 
 if __name__ == '__main__':
 	main()
