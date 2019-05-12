@@ -12,6 +12,8 @@ from PIL import Image
 import shutil
 import queue
 import threading
+import logging
+
 
 def getAuth():
 	file = open('logindata.txt', 'r')
@@ -92,11 +94,14 @@ def makedir(faultyDir, folderName):
 
 	try:
 		if(os.path.isdir(folderName) == True):
-			print("{} directory allready exists, skipping this step!".format(folderName))
+			s = "{} directory allready exists, skipping this step!".format(folderName)
 			pass
 		else:
-			print("Making new directory: ", folderName)
+			s = "Making new directory: " + folderName
 			os.mkdir(folderName)
+
+		logging.info(s)
+		print(s)
 	except Exception as e:
 		print(e)
 		exit()
@@ -104,9 +109,13 @@ def makedir(faultyDir, folderName):
 	
 	try:
 		if(os.path.isdir(os.path.join(folderName, faultyDir)) == True):
-			print("Faulty directory allready exists, skipping this step!")
+			s = "Faulty directory allready exists, skipping this step!"
 		else:
 			os.mkdir(os.path.join(folderName, faultyDir))
+			s = "Making new faulty directory directory: " + folderName + "/faulty"
+
+		logging.info(s)
+		print(s)
 	except Exception as e:
 		print(e)
 		exit()
@@ -174,15 +183,22 @@ def getPictures(top, folderName):
 				exists = True
 
 			if(exists == True):
-				print("{}/{} t:{}s  File allready exists: {}".format(count, amountOfPictures,getTime(startTime),fileName))
+				s = "{}/{} t:{}s  File allready exists: {}".format(count, amountOfPictures,getTime(startTime),fileName)
 			else:
 				time.sleep(.05)
 				urllib.request.urlretrieve(submission.url, pathToFile)
 				checkForFaulty(pathToFile, fileName, folderName)
-				print("{}/{} t:{}s  File downloaded: {}".format(count, amountOfPictures,getTime(startTime), fileName))		
-				
+
+				s = "{}/{} t:{}s  File downloaded: {}".format(count, amountOfPictures,getTime(startTime), fileName)
+
+			logging.info(s)
+			print(s)	
+			
 		except Exception as e:
-			print("{}/{} Failed: {}  Reason: {}".format(count, amountOfPictures, submission.url, e))
+			s = "{}/{} URL: {}  Reason: {}".format(count, amountOfPictures, submission.url, e)
+			logging.warning(s)
+			print(s)
+
 
 		count += 1
 
@@ -207,6 +223,7 @@ def main():
 	totalTime = []
 	threads = []
 	q = queue.Queue()
+	logging.basicConfig(filename='logs/{}_log.txt'.format(time.strftime("%Y-%m-%d %H_%M_%S", time.gmtime())), level=logging.INFO)
 	
 
 	if(sys.argv[1][-4:] == ".txt" and sys.argv[1] != "logindata.txt" and sys.argv[1] != "samplelogindata.txt"):
@@ -239,6 +256,7 @@ def main():
 		subreddit, folderName, amountOfPictures = getArgv(False)
 		runIndividual([subreddit, folderName])
 		print("Complete! Took: {} seconds".format(round(sum(totalTime), 1)))
+		print("LOL")
 		exit()
 
 if __name__ == '__main__':
