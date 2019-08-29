@@ -230,6 +230,7 @@ def main():
 		getPictures(top, queueitem[1])
 
 
+
 	reddit = getAuth()
 	totalTime = []
 	threads = []
@@ -242,23 +243,28 @@ def main():
 		for item in subreddits:
 			q.put([item, str(item)])
 
+		alive_threads = 0
+
 		while not q.empty():
-			while len(threads) < 5:
+			while alive_threads < 5:
 				t = threading.Thread(target=runIndividual, args=(q.get(),))
 				threads.append(t)
 				t.start()
+				alive_threads += 1
 				print("Started new thread! [{}/5]".format(len(threads)))
 			
-		started_threads = len(threads)
-		killed_threads_count = 0
-		killed_threads = []
+			started_threads = len(threads)
+			killed_threads_count = 0
+			killed_threads = []
 
-		while(killed_threads_count < started_threads):
-			for i in range(len(threads)):
-				if(not threads[i].isAlive() and threads[i] not in killed_threads):
-					killed_threads.append(threads[i])
-					killed_threads_count += 1
-			time.sleep(1)
+
+			while(killed_threads_count < started_threads):
+				for i in range(len(threads)):
+					if(not threads[i].isAlive() and threads[i] not in killed_threads):
+						killed_threads.append(threads[i])
+						killed_threads_count += 1
+						alive_threads -= 1
+				time.sleep(1)
 
 		print("Complete! Took: {} seconds".format(round(sum(totalTime), 1)))
 		exit()
