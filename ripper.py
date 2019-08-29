@@ -242,11 +242,12 @@ def main():
 		for item in subreddits:
 			q.put([item, str(item)])
 
-		while not q.empty() and len(threads) < 3:
-			t = threading.Thread(target=runIndividual, args=(q.get(),))
-			threads.append(t)
-			t.start()
-			print("Started new thread! [{}/3]".format(len(threads)))
+		while not q.empty():
+			while len(threads) < 5:
+				t = threading.Thread(target=runIndividual, args=(q.get(),))
+				threads.append(t)
+				t.start()
+				print("Started new thread! [{}/5]".format(len(threads)))
 			
 		started_threads = len(threads)
 		killed_threads_count = 0
