@@ -242,7 +242,7 @@ def main():
 		for item in subreddits:
 			q.put([item, str(item)])
 
-		while not q.empty():
+		while not q.empty() and len(threads) < 3:
 			t = threading.Thread(target=runIndividual, args=(q.get(),))
 			threads.append(t)
 			t.start()
