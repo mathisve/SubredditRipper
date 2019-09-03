@@ -154,6 +154,7 @@ def getTime(startTime):
 faultyDir = "faulty"
 def getPictures(top, folderName):
 	count = 1
+	file_allready_exists_count = 0
 	for submission in top:
 
 		startTime = time.time()
@@ -183,7 +184,12 @@ def getPictures(top, folderName):
 				exists = True
 
 			if(exists == True):
-				s = "{}/{} t:{}s  File allready exists: {}".format(count, amountOfPictures,getTime(startTime),fileName)
+				if(file_allready_exists_count < 10):
+					s = "{}/{} t:{}s  {} File allready exists: {}".format(count, amountOfPictures,getTime(startTime), folderName,fileName)
+				if(file_allready_exists_count == 10):
+					s = "X/X t:Xs X File allready exists not showing to save time! Will show again if it found files it hadn't downloaded yet."
+
+				file_allready_exists_count += 1
 			else:
 				time.sleep(.05)
 				request = urllib.urlopen(submission.url, timeout=1.5)
@@ -191,7 +197,8 @@ def getPictures(top, folderName):
 					f.write(request.read())
 				checkForFaulty(pathToFile, fileName, folderName)
 
-				s = "{}/{} t:{}s  File downloaded: {}".format(count, amountOfPictures,getTime(startTime), fileName)
+				s = "{}/{} t:{}s  {} File downloaded: {}".format(count, amountOfPictures,getTime(startTime), folderName, fileName)
+				file_allready_exists_count += 0
 
 			logging.info(s)
 			print(s)	
