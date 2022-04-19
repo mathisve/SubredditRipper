@@ -1,7 +1,6 @@
 #Author: Mathis Van Eetvelde 
-#Github: Mathisco-01
+#Github: mathisve
 #Started on: 1/16/2019
-#
 
 import praw
 import urllib
@@ -25,9 +24,7 @@ def getAuth():
 
 	return  praw.Reddit(client_id=logindata[0],
 					     client_secret=logindata[1],
-						 username=logindata[2],
-						 password=logindata[3],
-						 user_agent=logindata[4])
+						 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:99.0) Gecko/20100101 Firefox/99.0")
 
 def getArgv(isFile):
 
@@ -187,9 +184,12 @@ def getPictures(top):
 def main():
 
 	def runIndividual(subreddit):
+			try:
+				subredditObj = reddit.subreddit(subreddit)
+				top = subredditObj.top(limit=amountOfPictures)
+			except Exception as e:
+				print("something went wrong: ", e)
 
-			subredditObj = reddit.subreddit(subreddit)
-			top = subredditObj.top(limit=amountOfPictures)
 
 			makedir(faultyDir)
 			getPictures(top)
